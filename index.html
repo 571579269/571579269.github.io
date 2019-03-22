@@ -219,7 +219,7 @@
 
     
 
-    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Startseite</a>
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Home</a>
 
   </li>
         
@@ -236,7 +236,7 @@
 
     
 
-    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archiv</a>
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archives</a>
 
   </li>
 
@@ -288,7 +288,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://571579269.github.io/2019/03/15/Markdown/">
+    <link itemprop="mainEntityOfPage" href="http://571579269.github.io/2019/03/22/计时器线程池/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Mr.Long">
@@ -308,7 +308,7 @@
           <h1 class="post-title" itemprop="name headline">
                 
                 
-                <a href="/2019/03/15/Markdown/" class="post-title-link" itemprop="url">Unbenannt</a>
+                <a href="/2019/03/22/计时器线程池/" class="post-title-link" itemprop="url">Untitled</a>
               
             
           </h1>
@@ -326,14 +326,14 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               
-                <span class="post-meta-item-text">Veröffentlicht am</span>
+                <span class="post-meta-item-text">Posted on</span>
               
 
               
                 
               
 
-              <time title="Post created: 2019-03-15 11:50:15 / Updated at: 11:46:26" itemprop="dateCreated datePublished" datetime="2019-03-15T11:50:15+08:00">2019-03-15</time>
+              <time title="Created: 2019-03-22 11:53:43 / Modified: 11:26:11" itemprop="dateCreated datePublished" datetime="2019-03-22T11:53:43+08:00">2019-03-22</time>
             
 
             
@@ -374,7 +374,17 @@
       
         
           
-            <h1 id="first-blog"><a href="#first-blog" class="headerlink" title="first blog"></a>first blog</h1><p>踏遍山河，方知人生如梦，得安稳之所，恬淡度日，才是福报；尝尽五味，方觉粗茶淡饭，简布素衣，才是洁净。世态炎凉，无需迎合；人情冷暖，不必在意。以清净心看世界，以欢喜心过生活，以平常心生情味，以柔软心除挂碍。身在万物中，心在万物上，空纳万物，虚怀若谷。一念心清净，莲花处处开。</p>
+            <h1 id="计时器线程池"><a href="#计时器线程池" class="headerlink" title="计时器线程池"></a>计时器线程池</h1><hr>
+<p>++ScheduledExecutorService是从JavaSE5的java.util.concurrent里，做为并发工具类被引进的，这是最理想的定时任务实现方式。++</p>
+<blockquote>
+<pre><code>1&gt;相比于Timer的单线程，它是通过线程池的方式来执行任务的 
+2&gt;可以很灵活的去设定第一次执行任务delay时间
+3&gt;提供了良好的约定，以便设定执行的时间间隔
+</code></pre></blockquote>
+<hr>
+<h6 id="引用的包"><a href="#引用的包" class="headerlink" title="引用的包"></a>引用的包</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">import java.time.LocalDateTime;</span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line">import java.util.concurrent.ScheduledExecutorService;</span><br><span class="line">import java.util.concurrent.TimeUnit;</span><br></pre></td></tr></table></figure>
+<h6 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">public class TaskTimer &#123;</span><br><span class="line">    </span><br><span class="line">    // 全局变量map String 用来标记 变量ScheduledExecutorService service  每个service都是一个新的线程互不影响</span><br><span class="line">    public static Map&lt;String, ScheduledExecutorService&gt; TimerMap = new HashMap&lt;String, ScheduledExecutorService&gt;();</span><br><span class="line"></span><br><span class="line">    //消息推送的run方法</span><br><span class="line">    public static void SendMessageTimer(ScheduledExecutorService service)&#123;</span><br><span class="line">        Runnable runnable = new Runnable() &#123;</span><br><span class="line">            int count =0;</span><br><span class="line">            public void run() &#123;</span><br><span class="line">                if(count&gt;=1)&#123;</span><br><span class="line">                   //当超时时需要进行的操作</span><br><span class="line">                   System.out.println(&quot;已超时&quot;+LocalDateTime.now());</span><br><span class="line">                   //停止线程</span><br><span class="line">                   stopMessageTimer(service);</span><br><span class="line">                &#125;else&#123;</span><br><span class="line">                   count++;</span><br><span class="line">                   //每次15分钟就发送一次通知</span><br><span class="line">                   System.out.println(&quot;第&quot;+count+&quot;次发送通知&quot;+LocalDateTime.now());</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">        //第一次延迟15分钟后执行run方法 第一次发送通知</span><br><span class="line">        //以后都是每隔15分钟执行run方法，可以用count控制执行的次数。这里只会执行一次已超时的通知</span><br><span class="line">        service.scheduleAtFixedRate(runnable, 15, 15, TimeUnit.MINUTES);</span><br><span class="line">    &#125;</span><br><span class="line">   </span><br><span class="line">    //关闭线程的方法</span><br><span class="line">    public static void stopMessageTimer(ScheduledExecutorService service)&#123;</span><br><span class="line">        service.shutdown();//停止计时器，关闭线程</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="服务层对线程的使用"><a href="#服务层对线程的使用" class="headerlink" title="服务层对线程的使用"></a>服务层对线程的使用</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">public class task&#123;</span><br><span class="line">    //任务启动</span><br><span class="line">    public void taskbegin&#123;</span><br><span class="line">            String id;//这个一般用唯一id用来标记是哪个任务的线程</span><br><span class="line">            ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();//每当任务发布时就会启动线程计时</span><br><span class="line">            TaskTimer.TimerMap.put(id, service);用来标记线程之后可以关闭</span><br><span class="line">            TaskTimer.SendMessageTimer(service);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    //任务结束</span><br><span class="line">    public void taskend&#123;</span><br><span class="line">            String id;//这个一般用唯一id用来标记是哪个任务的线程</span><br><span class="line">            TaskTimer.stopMessageTimer(TaskTimer.TimerMap.get(id));</span><br><span class="line">                TaskTimer.TimerMap.remove(su);//当任务结束，或者其她原因导致任务不能进行则关闭线程</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
           
         
@@ -431,7 +441,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://571579269.github.io/2019/03/15/hello-world/">
+    <link itemprop="mainEntityOfPage" href="http://571579269.github.io/2019/03/22/数据处理/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Mr.Long">
@@ -451,7 +461,7 @@
           <h1 class="post-title" itemprop="name headline">
                 
                 
-                <a href="/2019/03/15/hello-world/" class="post-title-link" itemprop="url">Hello World</a>
+                <a href="/2019/03/22/数据处理/" class="post-title-link" itemprop="url">Untitled</a>
               
             
           </h1>
@@ -469,16 +479,20 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               
-                <span class="post-meta-item-text">Veröffentlicht am</span>
+                <span class="post-meta-item-text">Posted on</span>
               
 
               
                 
               
 
-              <time title="Post created: 2019-03-15 09:57:11" itemprop="dateCreated datePublished" datetime="2019-03-15T09:57:11+08:00">2019-03-15</time>
+              <time title="Created: 2019-03-22 11:53:43 / Modified: 10:58:46" itemprop="dateCreated datePublished" datetime="2019-03-22T11:53:43+08:00">2019-03-22</time>
             
 
+            
+              
+
+              
             
           </span>
 
@@ -513,15 +527,152 @@
       
         
           
-            <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="noopener">Deployment</a></p>
+            <h1 id="数据处理"><a href="#数据处理" class="headerlink" title="数据处理"></a>数据处理</h1><h6 id="不进行四舍五入保留两位小数"><a href="#不进行四舍五入保留两位小数" class="headerlink" title="不进行四舍五入保留两位小数"></a>不进行四舍五入保留两位小数</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">BigDecimal blon = new BigDecimal(lon);</span><br><span class="line">BigDecimal longitude = blon.setScale(2, BigDecimal.ROUND_DOWN);</span><br></pre></td></tr></table></figure>
+<h6 id="进行四舍五入保留两位小数"><a href="#进行四舍五入保留两位小数" class="headerlink" title="进行四舍五入保留两位小数"></a>进行四舍五入保留两位小数</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">String.format(&quot;%.2f&quot;, d);</span><br></pre></td></tr></table></figure>
+
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://571579269.github.io/2019/03/22/mybatis-plus代码生成器/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Mr.Long">
+      <meta itemprop="description" content="踏遍山河，方知人生如梦，得安稳之所，恬淡度日，才是福报；尝尽五味，方觉粗茶淡饭，简布素衣，才是洁净。世态炎凉，无需迎合；人情冷暖，不必在意。以清净心看世界，以欢喜心过生活，以平常心生情味，以柔软心除挂碍。身在万物中，心在万物上，空纳万物，虚怀若谷。一念心清净，莲花处处开。">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                
+                <a href="/2019/03/22/mybatis-plus代码生成器/" class="post-title-link" itemprop="url">Untitled</a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2019-03-22 11:53:43 / Modified: 11:33:18" itemprop="dateCreated datePublished" datetime="2019-03-22T11:53:43+08:00">2019-03-22</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h6 id="引入的包"><a href="#引入的包" class="headerlink" title="引入的包"></a>引入的包</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">import java.util.ArrayList;</span><br><span class="line">import java.util.List;</span><br><span class="line">import java.util.Scanner;</span><br><span class="line"></span><br><span class="line">import com.baomidou.mybatisplus.core.exceptions.MybatisPlusException;</span><br><span class="line">import com.baomidou.mybatisplus.core.toolkit.StringPool;</span><br><span class="line">import com.baomidou.mybatisplus.core.toolkit.StringUtils;</span><br><span class="line">import com.baomidou.mybatisplus.generator.AutoGenerator;</span><br><span class="line">import com.baomidou.mybatisplus.generator.InjectionConfig;</span><br><span class="line">import com.baomidou.mybatisplus.generator.config.DataSourceConfig;</span><br><span class="line">import com.baomidou.mybatisplus.generator.config.FileOutConfig;</span><br><span class="line">import com.baomidou.mybatisplus.generator.config.GlobalConfig;</span><br><span class="line">import com.baomidou.mybatisplus.generator.config.PackageConfig;</span><br><span class="line">import com.baomidou.mybatisplus.generator.config.StrategyConfig;</span><br><span class="line">import com.baomidou.mybatisplus.generator.config.TemplateConfig;</span><br><span class="line">import com.baomidou.mybatisplus.generator.config.po.TableInfo;</span><br><span class="line">import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;</span><br><span class="line">import com.baomidou.mybatisplus.generator.engine.FreemarkerTemplateEngine;</span><br></pre></td></tr></table></figure>
+<h6 id="生成代码的main方法"><a href="#生成代码的main方法" class="headerlink" title="生成代码的main方法"></a>生成代码的main方法</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br></pre></td><td class="code"><pre><span class="line">//执行 main 方法控制台输入模块表名回车自动生成对应项目目录中</span><br><span class="line">public class CodeGenerator &#123;</span><br><span class="line">  public static String scanner(String tip) &#123;</span><br><span class="line">      Scanner scanner = new Scanner(System.in);</span><br><span class="line">      StringBuilder help = new StringBuilder();</span><br><span class="line">      help.append(&quot;请输入&quot; + tip + &quot;：&quot;);</span><br><span class="line">      System.out.println(help.toString());</span><br><span class="line">      if (scanner.hasNext()) &#123;</span><br><span class="line">          String ipt = scanner.next();</span><br><span class="line">          if (StringUtils.isNotEmpty(ipt)) &#123;</span><br><span class="line">              return ipt;</span><br><span class="line">          &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      throw new MybatisPlusException(&quot;请输入正确的&quot; + tip + &quot;！&quot;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  public static void main(String[] args) &#123;</span><br><span class="line">      // 代码生成器</span><br><span class="line">      AutoGenerator mpg = new AutoGenerator();</span><br><span class="line"></span><br><span class="line">      // 全局配置</span><br><span class="line">      GlobalConfig gc = new GlobalConfig();</span><br><span class="line">      String projectPath = System.getProperty(&quot;user.dir&quot;);</span><br><span class="line">      gc.setOutputDir(projectPath + &quot;/src/main/java&quot;);</span><br><span class="line">      gc.setAuthor(&quot;long&quot;);</span><br><span class="line">      gc.setOpen(false);</span><br><span class="line">      mpg.setGlobalConfig(gc);</span><br><span class="line"></span><br><span class="line">      // 数据源配置</span><br><span class="line">      DataSourceConfig dsc = new DataSourceConfig();</span><br><span class="line">      dsc.setUrl(&quot;jdbc:mysql://10.10.0.118:3306/renbao?useUnicode=true&amp;useSSL=false&amp;characterEncoding=utf8&quot;);</span><br><span class="line">      // dsc.setSchemaName(&quot;public&quot;);</span><br><span class="line">      dsc.setDriverName(&quot;com.mysql.jdbc.Driver&quot;);</span><br><span class="line">      dsc.setUsername(&quot;root&quot;);</span><br><span class="line">      dsc.setPassword(&quot;&quot;);</span><br><span class="line">      mpg.setDataSource(dsc);</span><br><span class="line"></span><br><span class="line">      // 包配置</span><br><span class="line">      PackageConfig pc = new PackageConfig();</span><br><span class="line">      //配置生成的entity等的路径</span><br><span class="line">      pc.setParent(&quot;com.example.modules.demo&quot;);</span><br><span class="line">      mpg.setPackageInfo(pc);</span><br><span class="line"></span><br><span class="line">      // 自定义配置</span><br><span class="line">      InjectionConfig cfg = new InjectionConfig() &#123;</span><br><span class="line">          @Override</span><br><span class="line">          public void initMap() &#123;</span><br><span class="line">          &#125;</span><br><span class="line">      &#125;;</span><br><span class="line"></span><br><span class="line">      // 如果模板引擎是 freemarker</span><br><span class="line">      String templatePath = &quot;/templates/mapper.xml.ftl&quot;;</span><br><span class="line">      // 如果模板引擎是 velocity</span><br><span class="line">      // String templatePath = &quot;/templates/mapper.xml.vm&quot;;</span><br><span class="line"></span><br><span class="line">      // 自定义输出配置</span><br><span class="line">      List&lt;FileOutConfig&gt; focList = new ArrayList&lt;&gt;();</span><br><span class="line">      // 自定义配置会被优先输出</span><br><span class="line">      focList.add(new FileOutConfig(templatePath) &#123;</span><br><span class="line">          @Override</span><br><span class="line">          public String outputFile(TableInfo tableInfo) &#123;</span><br><span class="line">              // 自定义输出文件名，如果你 Entity 设置了前后缀、此处注意 xml 的名称会跟着发生变化！！</span><br><span class="line">              return projectPath + &quot;/src/main/resources/mapper/&quot; + pc.getModuleName()</span><br><span class="line">                      + &quot;/&quot; + tableInfo.getEntityName() + &quot;Mapper&quot; + StringPool.DOT_XML;</span><br><span class="line">          &#125;</span><br><span class="line">      &#125;);</span><br><span class="line"></span><br><span class="line">      cfg.setFileOutConfigList(focList);</span><br><span class="line">      mpg.setCfg(cfg);</span><br><span class="line"></span><br><span class="line">      // 配置模板</span><br><span class="line">      TemplateConfig templateConfig = new TemplateConfig();</span><br><span class="line"></span><br><span class="line">      // 配置自定义输出模板</span><br><span class="line">      //指定自定义模板路径，注意不要带上.ftl/.vm, 会根据使用的模板引擎自动识别</span><br><span class="line">      // templateConfig.setEntity(&quot;templates/entity2.java&quot;);</span><br><span class="line">      // templateConfig.setService();</span><br><span class="line">      // templateConfig.setController();</span><br><span class="line">      </span><br><span class="line">      templateConfig.setXml(null);</span><br><span class="line">      mpg.setTemplate(templateConfig);</span><br><span class="line"></span><br><span class="line">      // 策略配置</span><br><span class="line">      StrategyConfig strategy = new StrategyConfig();</span><br><span class="line">      strategy.setNaming(NamingStrategy.underline_to_camel);</span><br><span class="line">      strategy.setColumnNaming(NamingStrategy.underline_to_camel);</span><br><span class="line">      strategy.setEntityLombokModel(true);</span><br><span class="line">      strategy.setRestControllerStyle(true);</span><br><span class="line">      // 要生成的数据库表的名字</span><br><span class="line">      strategy.setInclude(&quot;affected_area&quot;,</span><br><span class="line">          &quot;affected_subject&quot;,</span><br><span class="line">          &quot;alert_message&quot;,</span><br><span class="line">          &quot;task_locating&quot;,</span><br><span class="line">          &quot;task_message&quot;,</span><br><span class="line">          &quot;task_reassignment&quot;,</span><br><span class="line">          &quot;tb_token&quot;,</span><br><span class="line">          &quot;tb_user&quot;);</span><br><span class="line">      strategy.setControllerMappingHyphenStyle(true);</span><br><span class="line">      mpg.setStrategy(strategy);</span><br><span class="line">      mpg.setTemplateEngine(new FreemarkerTemplateEngine());</span><br><span class="line">      mpg.execute();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
           
         
@@ -607,8 +758,8 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">2</span>
-                    <span class="site-state-item-name">Artikel</span>
+                    <span class="site-state-item-count">3</span>
+                    <span class="site-state-item-name">posts</span>
                   </a>
                 </div>
               
@@ -663,7 +814,7 @@
 </div>
 
 
-  <div class="powered-by">Erstellt mit  <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.8.0</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.8.0</div>
 
 
 
